@@ -1,0 +1,24 @@
+#!/bin/bash
+NOW=$(date +"%Y-%m-%d")
+YEAR=$(date +"%Y")
+MONTH=$(date +"%m")
+
+FILE="nomdufichier.$NOW.tar" # A MODIFIER (nom du tar final)
+BACKUP_DIR="/home/ubuntu/backups/$YEAR/$MONTH"  # A MODIFIER (ou placer le dossier de backup)
+WWW_DIR="/var/www/html"  # A MODIFIER (ou se situe le dossier web)
+
+# MySQL database credentials
+DB_USER="root" # A MODIFIER (user)
+DB_PASS="monmotdepasse" # A MODIFIER (mot de passe du root)
+DB_NAME="wordpress" # A MODIFIER (nom de la db)
+DB_FILE="nomdufichier_sql.$NOW.sql" # A MODIFIER (nom du fichier db)
+
+WWW_TRANSFORM='s,^var/www/html,www,' # A MODIFIER (décomposition du tar pour partie web) 
+DB_TRANSFORM='s,^home/ubuntu/backups,database,' # A MODIFIER (""""pour partie db)
+
+tar -cvf $BACKUP_DIR/$FILE --transform $WWW_TRANSFORM $WWW_DIR
+mysqldump -u$DB_USER -p$DB_PASS $DB_NAME > $BACKUP_DIR/$DB_FILE
+
+tar --append --file=$BACKUP_DIR/$FILE --transform $DB_TRANSFORM $BACKUP_DIR/$DB_FILE
+rm $BACKUP_DIR/$DB_FILE
+gzip -9 $BACKUP_DIR/$FILE
